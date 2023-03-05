@@ -46,42 +46,113 @@
 然后再去使用全局平均池化，经过测试发现最终它所能达到的准确甚至是可以略微超过单纯的全连接神经网络，具体网络结构如下：\par
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{classify_network_structure.png} %1.png是图片文件的相对路径
-    \caption{分类器网络结构} %caption是图片的标题
+    \includegraphics[width=.8\textwidth]{classify_network_structure.png} 
+    \caption{分类器网络结构} 
 \end{figure}
 
 下图展示训练时的准确率、LOSS值的变化以及ROC曲线绘制。
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{train_accuracy.png} %1.png是图片文件的相对路径
-    \caption{训练时准确率变化} %caption是图片的标题
+    \includegraphics[width=.8\textwidth]{train_accuracy.png} 
+    \caption{训练时准确率变化} 
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{train_loss.png} %1.png是图片文件的相对路径
-    \caption{训练时LOSS值变化} %caption是图片的标题
+    \includegraphics[width=.8\textwidth]{train_loss.png} 
+    \caption{训练时LOSS值变化} 
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{train_ROC.png} %1.png是图片文件的相对路径
-    \caption{ROC曲线} %caption是图片的标题
+    \includegraphics[width=.8\textwidth]{train_ROC.png} 
+    \caption{ROC曲线} 
 \end{figure}
 
 下图展示训练后的神经网络在面对新数据时的表现。
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{classify_demo.png} %1.png是图片文件的相对路径
-    \caption{分类器测试结果} %caption是图片的标题
+    \includegraphics[width=.8\textwidth]{classify_demo.png} 
+    \caption{分类器测试结果} 
 \end{figure}
 
 下图为，经过分类器判别之后得到的装甲板。
-\subsubsection{运动预测算法}
+\subsubsection{卡尔曼滤波器与运动预测算法}
+
+卡尔曼滤波器是用来对数据滤波的，与运动预测没有直接关系。
+运动预测本质上是对运动物体的建模，比如，通过观测知道了当前物体的位置，
+并且通过历史的观测数据得到了物体的运动信息（如速度、加速度等），
+那么就可以预测未来在$t$时刻物体的位置，以在一维$x$方向匀速运动的物体为例 \par
+$x(t) = x_0 + v_x*t$  \par
+所谓的对运动物体的建模其实就是假设一个运动模型，通过数据去拟合参数，
+比如，匀速运动模型就是通过一堆带着时间信息的坐标点去拟合速度。\par
+接下来我们考虑坐标系的选择。通过PnP算法或者是其他算法解算的目标位置（实际上得到的是位置和姿态，
+但是运动预测不需要目标的姿态，因此下文只考虑目标的位置）的坐标系是相机坐标系，但是，
+云台运动时相机坐标系的位姿也会有变化，观测的相对于大地静止的目标也会发生变化，这样不利于建立运动模型。所以，
+需要将目标的位置坐标转换到惯性坐标系下，这样目标点的位置不随着云台运动而运动，从而可以建立准确的运动学模型。\par
+由于设备采用的是单目相机，得到某点的信息只有其在$x$和$y$方向的像素坐标信息，
+其实得到是目标相对于相机坐标系的$yaw$和$pitch$轴角度信息，
+也就是说，相机成像的物理模型使得在观测物体的位置时天生选择的是球坐标系。
+至于深度信息，也就是半径，单目相机在没有先验知识的情况下是无法得出的。
+但是装甲板的实际尺寸大小是已知的(先验)，由透镜成像的物理模型可得：\par
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{camera_model.png} 
+    \caption{透镜成像模型} 
+\end{figure}    
+
+$d = \frac{fh}{y}$
+
+这样，通过计算灯条的像素高度、事先标定好的相机内参中的$f_y$和先验装甲版实际高度就可以计算出目标相对于相机的实际距离。
+注意，上面的$y$的单位不是像素，而是$mm$、$m$这样的单位，
+而实际从图像上读的是像素值，因此实际的计算公式如下（看不懂的可以看一下相机的成像模型以及坐标系转换关系）：
+$d=\frac{fh}{y_{像素}}=\frac{fh}{y*dy}=\frac{f_yh}{y}$
+这样，就得到了物体在相机坐标系下的位置描述$(yaw,pitch, distance)$。
+当然，可以把它再转换到笛卡尔坐标系$(x,y,z)$
+$x = distance*cos(pitch)*sin(yaw)$
+$y = distance*cos(pitch)*cos(yaw)$
+$z = distacne * sin(pitch)$
+不过需要注意的是，转换之后的$x,y,z$之间存在耦合关系（例如：x、y都被distancce影响，当distance发生改变时，x、y同时都会改变）；
+但是$yaw,pitch,distance$之间则相互独立。\par
+
+从计算深度距离$distance$可以看出其与物体在，这里最大不确定的因素就是顶像素点的位置，
+提取像素点不可能完全的准确。采用图像二值化的方式，提取的轮廓边缘的像素值一定是在阈值附近的，
+有时高于阈值，有时低于阈值，影响就是结算出来的距离一直在波动；且随着距离的增加，构成灯条的像素点数减少，像素点的波动对于测距影响增大，影响就是距离越远，测距误差越大。
+因为上述所说的噪声不可避免，所以采用卡尔曼滤波器得到距离的最优估计值。\par
 
 
+要使用卡尔曼滤波器，我们首先需要确定运动模型。对于运动模型，首先需要明确的是运动模型实际上是无法用数学公式描述的，
+即使能够用数学公式描述对于而言也是不可知的。 所以只能假设它是匀速运动模型或者是匀加速运动模型或是其他运动模型。
+对于Robomaster比赛来说，匀速运动模型能够应对大多数场合。然而，机器人加减速频繁，那么选择匀加速模型是不是更准确呢？ 
+经过测试发现，引入加速度后，从原先只需要拟合一个参数变成了拟合两个参数，容易造成拟合结果的不准确。且容易产生过拟合现象。
+如下图所示，高阶模型固然对已有的点拟合的准确，但从图中明显可以看出如果新加一个点，必然与拟合的曲线相差甚大。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{overfit_demo.png} 
+    \caption{过拟合现象可视化} 
+\end{figure} 
 
+本段介绍卡尔曼滤波器的核心思想。考虑这样一个情形，目标是知道在时刻$t$目标的位置。首先可以通过观测得到，
+然而观测会有噪声，一个减小误差的手段是选取一段时间区间内的平均观测值作为目标在$t$时刻的位置，
+平均值会降低噪声的影响，且区间越大，对于噪声的抑制效果越明显，但是他的缺点是滞后。\par
 
+卡尔曼给出的解决思路是：在状态转移模型已知的情况下，根据$t-1$时刻的状态推断$t$时刻的状态$\hat{x}_k^{-}$(先验状态估计，也叫预测值)；
+再将预测值与在$t$时刻的观测值$z_k$两者融合，得到$\hat{x}_k$(后验状态估计，也叫估计值，也是最优估计值)，其中$z_k=Hx_k+v_k$。\par
+
+根据上述，有（注意，这里目前只讨论一维的情况）： \par
+$\hat{x}_k = k*\hat{x}_k^{-} + (1-k)*x_k$
+
+最简单的想法是可以平均一下对吧（$k=0.5$），然而这种思路没有充分考虑两种数据来源的不确定度。
+预测值有噪声，观测值有噪声，卡尔曼给出的优化目标是让这个融合的值的噪声的方差最小。
+即，系统的白噪声激励和测量噪声并不是需要滤除的对象，它们的统计特性是估计过程中需要利用的信息，这一点与最小二乘和平均值法是有区别的。\par
+
+卡尔曼基本模型如下
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{overfit_demo.png} 
+    \caption{过拟合现象可视化} 
+\end{figure} 
 
 
 \section{后期拟完成的研究工作及进度安排}
