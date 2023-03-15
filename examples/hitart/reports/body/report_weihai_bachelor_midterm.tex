@@ -79,40 +79,71 @@ minAreaRect和fitEllipse都是OpenCV内置的API。minAreaRect方法对于灯条
 \end{figure}
 
 
-下图\ref{分类器测试结果}展示训练后的神经网络在面对新数据时的表现。
+下图\ref{分类器测试结果}展示训练后的神经网络在面对新数据时的表现。可以看到神经网络分类器对于模糊、有噪声干扰、形状不一的图片都有很好的表现。
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{classify_demo.png} 
     \caption{分类器测试结果} 
-    \ref{分类器测试结果}
+    \label{分类器测试结果}
 \end{figure}
 
-下图\ref{识别算法最终效果展示}为，经过分类器判别之后得到的装甲板。
+下图\ref{识别算法最终效果展示}展示经过神经网络分类器判别之后得到的装甲板。可以看到经过神经分类器后，一些误识别的区域排除，只留下存在装甲板的区域。
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{detection_final_result.png} 
-    \caption{识别算法最终效果展示} 
+    \caption{识别算法最终效果展示，识别到的装甲板被绿色框框出} 
     \label{识别算法最终效果展示}
 \end{figure}
 
-\subsubsection{卡尔曼滤波器与运动预测算法}
+\subsubsection{卡尔曼滤波器}
+卡尔曼滤波器是用来对数据滤波的，与运动预测没有直接关系。他起到的作用是为运动预测的输入数据源进行平滑处理，
+且力求得到真值。\par
 
-卡尔曼滤波器是用来对数据滤波的，与运动预测没有直接关系。
-运动预测本质上是对运动物体的建模，比如，通过观测知道了当前物体的位置，
-并且通过历史的观测数据得到了物体的运动信息（如速度、加速度等），
-那么就可以预测未来在$t$时刻物体的位置，以在一维$x$方向匀速运动的物体为例 \par
-$x(t) = x_0 + v_x*t$  \par
-所谓的对运动物体的建模其实就是假设一个运动模型，通过数据去拟合参数，
-比如，匀速运动模型就是通过一堆带着时间信息的坐标点去拟合速度。\par
-接下来我们考虑坐标系的选择。通过PnP算法或者是其他算法解算的目标位置（实际上得到的是位置和姿态，
+接下来介绍卡尔曼滤波器的核心思想。考虑这样一个情形，目标是知道在时刻$t$目标的位置。首先可以通过观测得到，
+然而观测会有噪声，一个减小误差的手段是选取一段时间区间内的平均观测值作为目标在$t$时刻的位置，
+平均值会降低噪声的影响，且区间越大，对于噪声的抑制效果越明显，但是存在的缺点是滞后。\par
+
+卡尔曼给出的解决思路是：在状态转移模型已知的情况下，根据$t-1$时刻的状态推断$t$时刻的状态$\hat{x}_k^{-}$(先验状态估计，也叫预测值)；
+再将预测值与在$t$时刻的观测值$z_k$两者融合，得到$\hat{x}_k$(后验状态估计，也叫估计值，也是最优估计值)，
+其中$z_k=Hx_k+v_k$。\par
+
+根据上述，有（注意，这里目前只讨论一维的情况）：
+\begin{gather}
+    \hat{x}_k = k*\hat{x}_k^{-} + (1-k)*x_k
+\end{gather}
+
+最简单的想法是可以平均一下对吧（$k=0.5$），然而这种思路没有充分考虑两种数据来源的不确定度。
+预测值有噪声，观测值有噪声，卡尔曼给出的优化目标是让这个融合的值的噪声的方差最小。
+即，系统的白噪声激励和测量噪声并不是需要滤除的对象，它们的统计特性是估计过程中需要利用的信息，这一点与最小二乘和平均值法是有区别的。卡尔曼基本模型如图\ref{卡尔曼滤波器}所示：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{kalman_filter_model.png} 
+    \caption{卡尔曼滤波器} 
+    \label{卡尔曼滤波器} 
+\end{figure} 
+
+\subsubsection{运动预测}
+
+
+运动预测本质上是对运动物体的建模，比如，通过观测得到当前物体的位置，
+并结合历史观测数据（位置、时间戳等）能够计算出物体的运动信息（如速度、加速度等），
+从而能够预测未来在$t$时刻物体的位置，以在一维$x$方向匀速运动的物体为例: 
+\begin{gather}
+    x(t) = x_0 + v_x*t
+\end{gather}
+
+对运动物体的建模即为假定一个运动模型，通过历史数据拟合参数，
+比如，匀速运动模型为通过一堆带着时间信息的坐标点去拟合速度。\par
+
+考虑坐标系的选择。通过PnP算法或者是其他算法解算的目标位置（实际上得到的是位置和姿态，
 但是运动预测不需要目标的姿态，因此下文只考虑目标的位置）的坐标系是相机坐标系，但是，
 云台运动时相机坐标系的位姿也会有变化，观测的相对于大地静止的目标也会发生变化，这样不利于建立运动模型。所以，
 需要将目标的位置坐标转换到惯性坐标系下，这样目标点的位置不随着云台运动而运动，从而可以建立准确的运动学模型。\par
 由于设备采用的是单目相机，得到某点的信息只有其在$x$和$y$方向的像素坐标信息，
 其实得到是目标相对于相机坐标系的$yaw$和$pitch$轴角度信息，
-也就是说，相机成像的物理模型使得在观测物体的位置时天生选择的是球坐标系。
-至于深度信息，也就是半径，单目相机在没有先验知识的情况下是无法得出的。
-但是装甲板的实际尺寸大小是已知的(先验)，由透镜成像的物理模型(图\ref{透镜成像模型})可得：\par
+即，相机成像的物理模型使得在观测物体的位置时选择的坐标系为球坐标系。
+至于深度信息，即球半径，单目相机在没有先验知识的情况下是无法结算出的。
+然而装甲板的实际尺寸大小是已知的(先验)，由透镜成像的物理模型(图\ref{透镜成像模型})可得：\par
 \begin{gather}
     d = \frac{fh}{y} 
 \end{gather}
@@ -157,30 +188,57 @@ $x(t) = x_0 + v_x*t$  \par
     \label{过拟合现象} 
 \end{figure} 
 
-接下来介绍卡尔曼滤波器的核心思想。考虑这样一个情形，目标是知道在时刻$t$目标的位置。首先可以通过观测得到，
-然而观测会有噪声，一个减小误差的手段是选取一段时间区间内的平均观测值作为目标在$t$时刻的位置，
-平均值会降低噪声的影响，且区间越大，对于噪声的抑制效果越明显，但是他的缺点是滞后。\par
+使用卡尔曼滤波器建立物体运动模型过程如下：
+设由PnP算法解算出目标在相机坐标系 ($c$系)的坐标为：
+\begin{equation} \boldsymbol r_c=\left[\begin{array}{c} x_c\\ y_c\\ z_c \end{array}\right] \end{equation}
+\par 
+根据相机的安装位置，目标在云台坐标系 ($b$ 系) 的坐标可由 $r_c$经过旋转平移后得到:
+\begin{equation} \boldsymbol r_b=\left[\begin{array}{c} x_b\\ y_b\\ z_b \end{array}\right] =\boldsymbol C_{c}^{b}\boldsymbol r_c + \boldsymbol t_{c}^{b} \end{equation}
+\par 
+然后根据陀螺仪数据将云台系坐标转换成惯性系坐标：
 
-卡尔曼给出的解决思路是：在状态转移模型已知的情况下，根据$t-1$时刻的状态推断$t$时刻的状态$\hat{x}_k^{-}$(先验状态估计，也叫预测值)；
-再将预测值与在$t$时刻的观测值$z_k$两者融合，得到$\hat{x}_k$(后验状态估计，也叫估计值，也是最优估计值)，
-其中$z_k=Hx_k+v_k$。\par
 
-根据上述，有（注意，这里目前只讨论一维的情况）：
-\begin{gather}
-    \hat{x}_k = k*\hat{x}_k^{-} + (1-k)*x_k
-\end{gather}
+\begin{equation} \boldsymbol r_n=\left[\begin{array}{c} x_n\\ y_n\\ z_n \end{array}\right] =\boldsymbol C_{b}^{n}\boldsymbol r_b \end{equation}
 
-最简单的想法是可以平均一下对吧（$k=0.5$），然而这种思路没有充分考虑两种数据来源的不确定度。
-预测值有噪声，观测值有噪声，卡尔曼给出的优化目标是让这个融合的值的噪声的方差最小。
-即，系统的白噪声激励和测量噪声并不是需要滤除的对象，它们的统计特性是估计过程中需要利用的信息，这一点与最小二乘和平均值法是有区别的。卡尔曼基本模型如图\ref{卡尔曼滤波器}所示：
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.8\textwidth]{kalman_filter_model.png} 
-    \caption{卡尔曼滤波器} 
-    \label{卡尔曼滤波器} 
-\end{figure} 
+\par
+采用匀速模型描述目标在惯性系的运动,以下为离散形式：
+\begin{equation} \boldsymbol x_{k+1} =\left[\begin{array}{cc} {1} & \Delta t  \\ 0 & {1}  \end{array}\right]\boldsymbol x_{k} + \left[\begin{array}{c} {\frac{1}{2}\Delta t^2} \\ {\Delta t}  \end{array}\right]w_k \end{equation}
 
-本段介绍在测试中发现影响运动预测效果的几个因素。
+
+
+利用匀速模型设计卡尔曼滤波器以估计目标在惯性系的位置与速度，
+设状态变量为：\begin{equation} \boldsymbol x =\left[\begin{array}{c} x_n\\ \dot x_n\\ y_n\\ \dot y_n\\ z_n\\ \dot z_n \end{array}\right] \end{equation}
+\par
+过程模型为：\begin{equation} \boldsymbol  x_{k+1} = \boldsymbol F_k\boldsymbol  x_k + \boldsymbol{\Gamma}_{k}\boldsymbol {w}_{k}, \quad \boldsymbol {w}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol Q_k \right) \end{equation}
+
+其中： 
+\begin{equation} F_k =\left[\begin{array}{cccccc} 1 &  \Delta t & 0 &0&0&0\\ 0 &  1 & 0 &0&0&0\\ 0 & 0 & 1&  \Delta t & 0 &0\\ 0&0&   0&1 &0 &0\\ 0 &0& 0 &0& 1 &\Delta t \\ 0 &0& 0 & 0 &0 &1 \end{array}\right] \end{equation}
+
+过程噪声方差阵$Q_k$：
+\begin{equation} \boldsymbol Q_k =\left[\begin{array}{ccc} \sigma_x^2 &  0 & 0 \\ 0 &  \sigma_y^2 & 0 \\ 0 & 0 & \sigma_z^2 \end{array}\right] \end{equation}
+\par
+其中 $\sigma_x^2$，$\sigma_y ^2$，$\sigma_z^2$分别$x$，$y$，$z$三轴过程噪声方差。
+\par
+
+
+量测模型如下：\begin{equation} \boldsymbol  z_{k} = \boldsymbol H_k\boldsymbol x_k + \boldsymbol {v}_{k} \end{equation}
+\par
+采用目标惯性系坐标作为量测向量，\begin{equation} r_n = [x_n,y_n,z_n]^T \end{equation} 
+\par
+则：
+\begin{equation} \begin{aligned} \boldsymbol H_k &=  \left[\begin{array}{cccccc} 1 & 0 &0 &0 &  0 &0   \\ 0 &0 &1 &0 &0 &0 \\ 0 &0 &0 &0 &1 &0  \end{array}\right],\boldsymbol {v}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol {R}_k\right) \end{aligned} \end{equation}
+% \\\begin{equation} \begin{aligned} \boldsymbol H_k &=  \left[\begin{array}{cccccc} 1 & 0 &0 &0 &  0 &0   \\ 0 &0 &1 &0 &0 &0 \\ 0 &0 &0 &0 &1 &0  \end{array}\right],\boldsymbol {v}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol {R}_k\right) \end{aligned} \end{equation}\\　　
+% \par
+% 根据图\ref{相机模型}相机模型
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=.8\textwidth]{camera_model.jpg} 
+%     \caption{相机模型} 
+%     \label{相机模型} 
+% \end{figure} 
+\par
+
+在实际测试过程中认知到影响运动预测效果的几个方面:
 \begin{itemize}[itemsep=2pt,topsep=0pt,parsep=0pt]
     \item 当前的观测值$x_0$的准确性。
     \item 运动模型建立的准确性。例如：如果物体是加速运动，那么按照匀速运动模型对物体建模就会有偏差。
@@ -189,12 +247,18 @@ $x(t) = x_0 + v_x*t$  \par
     观测噪声相对于测量噪声过小，会导致系统更加依赖观测值，系统产生滞后。我得到的调参经验是，先去找一个极小值和极大值，
     然后设置参数为他们的中间值看表现效果，如表现效果更接近极小值，则更新极小值为中间值，反之则更新极大值为中间值。
     \item 目标距离。使用历史信息拟合的速度$v_x$来对未来做预测，但是前提是速度是不变的，
-    否则怎么能够用过去的速度来预测未来的位置呢，在预测时间$t$内，物体的运动速度完全是可变的，
-    那么积分出来的位移变化量就不是$v_x*t$了。但是物体都是有惯性的，
-    在短时间内速度不可能突变，实际的位移量与计算的位移量相差不大，那还是可以击中物体的。
+    否则无法利用过去的速度预测未来的位置，在预测时间$t$内，物体的运动速度是可变的，
+    积分得到的位移变化量就不是$v_x*t$。然而考虑到物体惯性属性，
+    在短时间内速度不会产生较大的突变，实际的位移量与计算的位移量相差不大，那还是可以击中物体的。
     并且，预测时间越短，我们的计算的就更加准确，
 \end{itemize}
 
+\subsubsection{多目标追踪}
+算法设计核心为高效、准确。尽管基于深度学习的方法可以得到非常高的准确率，然后其对于计算资源的开销也是不可忽视的，
+因此在算法设计过程中并没有考虑引入深度学习的思路。\par
+算法设计思路为：为每块装甲板单独建立运动模型，每块有运动模型的装甲板利用运动模型对当前时刻进行位置预测，然后与观测到的装甲板进行一一配对，若距离小于阈值且观测装甲板的数字与携带运动模型对应装甲板的数字一致，
+则认为两者同属一块装甲板，利用当前装甲板信息更新运动模型，从而实现追踪效果。
+为了实现追踪效果的鲁棒性，允许装甲板的运动模型在短时间不更新，从而起到在受遮挡的情况下依然保留运动模型，待装甲板离开遮挡后不必重新计算运动模型；但是较长时间不更新则认为目标已经不在视野范围内。
 
 \section{后期拟完成的研究工作及进度安排}
 \subsection{后期拟完成的研究工作}
