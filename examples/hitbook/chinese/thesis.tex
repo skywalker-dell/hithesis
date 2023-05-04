@@ -16,7 +16,7 @@
 %      `\\//`   \\   \./    \\ /     //    \\./   \\   //   \\ |/ /
 %     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[fontset=fandol,type=bachelor,campus=harbin]{hithesisbook}
+\documentclass[fontset=fandol,type=bachelor,campus=weihai]{hithesisbook}
 % 此处选项中不要有空格
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 必填选项
@@ -96,18 +96,49 @@
 %   含义：字距设置为规范规定33个字还是word中34个字。默认regu。
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{hithesis}
-
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{listings}
+\lstset {
+    columns=fixed,       
+    numbers=left,                                        % 在左侧显示行号
+    numberstyle=\tiny\color{gray},                       % 设定行号格式
+    frame=none,                                          % 不显示背景边框
+    backgroundcolor=\color[RGB]{245,245,244},            % 设定背景颜色
+    keywordstyle=\color[RGB]{40,40,255},                 % 设定关键字颜色
+    numberstyle=\footnotesize\color{darkgray},           
+    commentstyle=\it\color[RGB]{0,96,96},                % 设置代码注释的格式
+    stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},   % 设置字符串格式
+    showstringspaces=false,                              % 不显示字符串中的空格
+    language=c++,                                        % 设置语言
+    aboveskip=0.5em,
+    belowskip=0.5em,
+    }
+\setlist[itemize]{itemsep=1pt}
 \graphicspath{{figures/}}
+
+
+
 
 \begin{document}
 \frontmatter
 \input{front/cover} % 封面
 \makecover
-\input{front/denotation}%物理量名称表,符合规范为主，有要求添加
+% \input{front/denotation}%物理量名称表,符合规范为主，有要求添加
 \tableofcontents %目录
 \mainmatter
-\include{body/regu}
-\include{body/introduction}
+\include{body/detection}
+\include{body/predict}
+\include{body/track}
+\include{body/anti_top}
+\include{body/trajectory}
+
+
+
+% \include{body/regu}
+% \include{body/introduction}
+
+
 \backmatter
 \include{back/conclusion}   % 结论
 \bibliographystyle{gbt7714-numerical}
@@ -116,23 +147,23 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 本科书序（哈尔滨、深圳校区）
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\bibliography{reference} % 参考文献
-\authorization %授权
-% \authorization[scan.pdf] %添加扫描页的命令，与上互斥
-\include{back/acknowledgements} %致谢
-\begin{appendix}%附录
-\input{back/appendix01}%本科生翻译论文
-\end{appendix}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 本科书序（威海校区）
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \bibliography{reference} % 参考文献
 % \authorization %授权
 % % \authorization[scan.pdf] %添加扫描页的命令，与上互斥
-% \bibliography{reference} % 参考文献
 % \include{back/acknowledgements} %致谢
 % \begin{appendix}%附录
 % \input{back/appendix01}%本科生翻译论文
 % \end{appendix}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 本科书序（威海校区）
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\authorization %授权
+% \authorization[scan.pdf] %添加扫描页的命令，与上互斥
+\bibliography{reference} % 参考文献
+\include{back/acknowledgements} %致谢
+\begin{appendix}%附录
+\input{back/appendix01}%本科生翻译论文
+\end{appendix}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 硕博书序
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
