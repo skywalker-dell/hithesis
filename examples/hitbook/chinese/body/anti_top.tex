@@ -19,12 +19,12 @@
 
 反陀螺模型需要计算以下信息：
 \begin{itemize}[itemindent=2em]
-    \item 前后和左右两组装甲板的平均高度。采用均值滤波算法处理数据。
-    \item 整车装甲板的平均高度。采用均值滤波算法处理数据。
-    \item 陀螺周期。一次装甲板切换为0.25个周期，采用一阶滞后滤波算法处理数据。
+    \item 前后和左右两组装甲板的平均高度。采用一阶滞后滤波算法处理数据，滤波系数0.5。
+    \item 整车装甲板的平均高度。采用一阶滞后滤波算法处理数据，滤波系数0.5。
+    \item 陀螺周期。一次装甲板切换为0.25个周期，采用一阶滞后滤波算法处理数据，滤波系数0.2。
     \item 陀螺方向。通过角速度判断，且经过积分滤波算法处理。
-    \item 最左端和最右端分别对应的yaw角度。采用一阶滞后滤波的形式平滑数据。
-    \item 最左端和最右端分别对应的yaw角度的等权平均值。采用一阶滞后滤波的形式平滑数据。认为该角度为车辆中心对应的yaw角度。
+    \item 最左端和最右端分别对应的yaw角度。采用一阶滞后滤波的形式平滑数据，滤波系数0.2。
+    \item 最左端和最右端分别对应的yaw角度的等权平均值。认为该角度为车辆中心对应的yaw角度，采用一阶滞后滤波的形式平滑数据，滤波系数0.2。
     \item 装甲板的平均深度信息。采用积分滤波算法处理数据。
 \end{itemize}
 
@@ -60,6 +60,8 @@
 
 在装甲板切换时云台需要回调，回调需要时间。如果陀螺转速较低，则云台回调时间相对于云台跟随装甲板的时间可以忽略不计。
 随着陀螺转速提高，云台回调时间比重增加，因此需要提前使得云台回调，使得云台回调之后正好迎接下一块装甲板。
+即：
+
 
 \par
 
@@ -70,6 +72,44 @@
     t_radio = double(4.0 * time / period)- int(4.0 * time / period);
     delta_yaw = yaw_section * t_radio;
 \end{lstlisting}
+
+
+\section{积分滤波器判断陀螺方向}[Content specification]
+
+算法在每个时刻将当前的yaw\_speed累加到left\_dir\_cnt上，
+从而得到一个表示yaw\_speed累积值的left\_dir\_cnt。
+在每个时刻根据left\_dir\_cnt的值来判断机器人当前的旋转方向，
+如果left\_dir\_cnt超过了一定阈值cnt\_thresh，
+就认为机器人在相应的方向上旋转了，
+并将left\_dir\_cnt重置为一个较小的值，以避免累积过多的误差。
+
+因此，可以将该算法看作是一种积分滤波算法，
+它的作用是平滑yaw\_speed信号，抑制噪声和误差的影响，从而得到更加可靠的旋转方向判断。
+具体代码如下：
+
+\begin{lstlisting}
+    void AntiGyro::judge_rotate_dir(double yaw_speed, ArmorDir &dir)
+    {
+        const int cnt_thresh = 5;
+        static int left_dir_cnt = 0;
+        if (yaw_speed > 0){
+            ++left_dir_cnt;
+        } else if (yaw_speed < 0)
+        {
+            --left_dir_cnt;
+        } 
+        if (left_dir_cnt > cnt_thresh){
+            dir = ArmorDir::LEFT;
+            left_dir_cnt = 5;
+        } else if (left_dir_cnt < -cnt_thresh){    
+            dir = ArmorDir::RIGHT;
+            left_dir_cnt = -5;
+        } else {
+            dir = ArmorDir::UNKNOWN;
+        }
+    }
+\end{lstlisting}
+
 
 \section{本章小结}[Content specification]
 

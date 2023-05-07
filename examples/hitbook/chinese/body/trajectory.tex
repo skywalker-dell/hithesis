@@ -2,6 +2,12 @@
 
 \chapter[受空气阻力的弹道迭代计算]{受空气阻力的弹道迭代计算}[Harbin Institute of Technology Postgraduate Dissertation Writing Specifications]
 
+\section{引言}[Content specification]
+在现代计算机计算中，迭代计算已经成为了一种非常重要的计算方法，
+尤其是在物理学、工程学和计算机科学等领域中。
+受空气阻力的影响，
+弹道轨迹并不是一个简单的抛物线，
+因此迭代计算成为了计算弹道轨迹的重要方法。
 
 
 \section{空气阻力系数求解}[Content specification]
@@ -82,3 +88,21 @@
     \caption{迭代计算过程} 
     \label{迭代计算过程}
 \end{figure}
+
+\section{弹道轨迹可视化}[Content specification]
+使用matplotlib将受空气阻力影响的弹道轨迹和不受空气阻力影响的弹道轨迹可视化。如图\ref{弹道对比}所示，
+绿色曲线为不受空气阻力影响的弹道轨迹，红色曲线为受空气阻力影响的弹道轨迹。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{air_resistence_compare.png} 
+    \caption{弹道对比图} 
+    \label{弹道对比}
+\end{figure}
+
+
+\section{本章小结}[Content specification]
+本章详细介绍了受空气阻力的弹道迭代计算方法，
+包括空气阻力系数的求解和弹丸动力学微分方程的解析解。
+针对目标运动情况，提出了数值迭代的解算方法，并给出了迭代计算过程和收敛条件.
+最后将受空气阻力与不受空气阻力的弹道轨迹使用matplotlib可视化。
+本文提供了一种可行的数值解决方案，对于弹道计算和精确打击目标具有重要意义。
