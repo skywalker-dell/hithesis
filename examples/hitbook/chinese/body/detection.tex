@@ -18,6 +18,7 @@
 
 \section{检测算法的数字图像处理算法设计}
 
+\subsection{灯条提取}
 传统视觉算法负责的内容是提取出可能存在装甲板的区域。总体流程是：二值化图像、提取轮廓、灯条判别、灯条匹配装甲板。
 因为装甲板左右两侧的灯条的亮度是远高于背景环境的，所以我们可以通过图像二值化方法提取将装甲板的灯条，但是在测试中发现由于装甲板所处的光照环境不同，
 对于二值化阈值的选取有着一定的难度，为了让二值化提取能够更好的适应不同的环境我尝试了以下几种方法：\par
@@ -45,58 +46,58 @@
 通过分析可以发现由于使用的是灰度图像所以对于场地颜色还有亮度的适应性更强，结合对于颜色通道的二值化图像可以较好的得到最终所需的二值化图像。\par
 
 如果使用OpenCV内置的函数，需要执行两次访存，然后理论上只需要一次访存。因此，在图像二值化这个过程，我并没有使用OpenCV提供的API，而是自己手工实现该功能的。
-\begin{lstlisting}
-void thresh_img(cv::Mat &src, cv::Mat &out, 
-                        int color, int gray_thresh, int color_channel_thresh)
-{
-    cv::Mat grey(src.rows, src.cols, CV_8UC1, cv::Scalar(0));
-    for (int y = 0; y < src.rows; y++)
-    {
-        uchar *cp = src.ptr<uchar>(y);
-        uchar *gp = grey.ptr<uchar>(y);
-        for (int x = 0; x < src.cols; x++)
-        {
-            *gp = (15 * cp[0] + 75 * cp[1] + 38 * cp[2]) >> 7;
-            if (*gp > gray_thresh) 
-            {
-                if (color == COLOR_BLUE) // Mat默认BGR
-                {
-                    if (cp[0] > color_channel_thresh)
-                    {
-                        *gp = 255;
-                    }
-                    else 
-                    {
-                        *gp = 0;
-                    }
-                } 
-                else 
-                {
-                    if (cp[2] > color_channel_thresh)
-                    {
-                        *gp = 255;
-                    }
-                    else {
-                        *gp = 0;
-                    }
-                } 
-            }
-            else
-            {
-                *gp = 0;
-            }
-            cp += 3;
-            gp++;
-        } 
-    }
-    out = grey;
-}
-\end{lstlisting}
+% \begin{lstlisting}
+% void thresh_img(cv::Mat &src, cv::Mat &out, 
+%                         int color, int gray_thresh, int color_channel_thresh)
+% {
+%     cv::Mat grey(src.rows, src.cols, CV_8UC1, cv::Scalar(0));
+%     for (int y = 0; y < src.rows; y++)
+%     {
+%         uchar *cp = src.ptr<uchar>(y);
+%         uchar *gp = grey.ptr<uchar>(y);
+%         for (int x = 0; x < src.cols; x++)
+%         {
+%             *gp = (15 * cp[0] + 75 * cp[1] + 38 * cp[2]) >> 7;
+%             if (*gp > gray_thresh) 
+%             {
+%                 if (color == COLOR_BLUE) // Mat默认BGR
+%                 {
+%                     if (cp[0] > color_channel_thresh)
+%                     {
+%                         *gp = 255;
+%                     }
+%                     else 
+%                     {
+%                         *gp = 0;
+%                     }
+%                 } 
+%                 else 
+%                 {
+%                     if (cp[2] > color_channel_thresh)
+%                     {
+%                         *gp = 255;
+%                     }
+%                     else {
+%                         *gp = 0;
+%                     }
+%                 } 
+%             }
+%             else
+%             {
+%                 *gp = 0;
+%             }
+%             cp += 3;
+%             gp++;
+%         } 
+%     }
+%     out = grey;
+% }
+% \end{lstlisting}
 
+\subsection{装甲板匹配}
 
-经过了二值化之后所有亮度高于灯条或者与灯条亮度一致的区域都会被保留下来，需要通过筛选将一些明显不符合灯条特征的区域筛去。\par
-
-首先找出图像中所有的轮廓，然后通过OpenCV中拟合矩形的两种的方式(minAreaRect、fitEllipse)获取所有轮廓的外接矩形。
+经过了二值化之后所有亮度高于灯条或者与灯条亮度一致的区域都会被保留下来
+，通过findContours函数寻找图像中所有的轮廓，然后通过OpenCV中拟合矩形的两种的方式(minAreaRect、fitEllipse)获取所有轮廓的外接矩形。
 图像上的灯条轮廓是一个不规则的形状，当我们需要描述它的几何信息时无法直接描述，所以我们用灯条的外接矩形来近似代表灯条轮廓。
 minAreaRect和fitEllipse都是OpenCV内置的API。minAreaRect方法对于灯条的几何形状信息描述的十分准确；fitEllipse方法对于灯条的角度信息描述的十分准确。
 在获取外接矩形后便拥有了它们的长宽以及角度信息，这样便可以利用轮廓的长宽比以及它们的角度进行一个初步的筛选，将满足条件的装甲板存储起来进行下一步的判断。\par
@@ -115,7 +116,31 @@ minAreaRect和fitEllipse都是OpenCV内置的API。minAreaRect方法对于灯条
 \end{figure}
 
 
+
+
+
 \section{检测算法的深度学习算法设计}
+\subsection{大津二值化算法突显数字特征}
+为了尽可能的提高算法运行帧率，则必须尽可能的降低曝光时间，比如，如果算法想要达到300fps，
+则最大曝光时间不能超过3.4ms，
+又因为装甲板中间的数字图案为不发光体，
+所以经常会出现因为图像亮度过低造成数字分类器分类失败的情况。
+通过分析装甲板的特征，发现数字图案是白色的，
+周围背景是黑色的，尽管数字不发光，但是与背景还是可以区分的，
+如果将这一小块区域提取出来使用大津二值化算法则能够很好的将背景与图案分割。
+如下图\ref{ostu}所示，左图为原图，右图为经过大津二值化算法处理过后的图。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{ostu.png} 
+    \caption{大津二值化算法效果图} 
+    \label{ostu}
+\end{figure}
+
+
+
+
+\subsection{卷积神经网络实现图像分类}
+
 为了防止出现误识别的情况，提取到“装甲板”对应的ROI区域后需要将它们放入分类器去进行分类，此外对于不同的兵种（装甲板对应不同的数字）击打的优先级是不同的，因此对于装甲板类别的判断是非常重要的。\par
 目前对于图像分类的方式有许多种，比如基于卷积神经网络\cite{krizhevsky2017imagenet}方案和传统机器学习（如SVM\cite{cortes1995support}）
 等。我们的任务是实现装甲板分类，装甲板的特征比较简单但是类别较多，同时还需要具备对于负样本的判断能力，

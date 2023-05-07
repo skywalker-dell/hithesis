@@ -46,16 +46,11 @@
     d=\frac{fh}{y_{像素}}=\frac{fh}{y*dy}=\frac{f_yh}{y}
 \end{gather}
 这样，就得到了物体在相机坐标系下的位置描述$(yaw,pitch, distance)$。
-当然，可以把它再转换到笛卡尔坐标系$(x,y,z)$
-\begin{gather}
-    x = distance*cos(pitch)*sin(yaw) \\
-    y = distance*cos(pitch)*cos(yaw) \\
-    z = distacne * sin(pitch)
-\end{gather} \par
-不过需要注意的是，转换之后的$x,y,z$之间存在耦合关系（例如：x、y都与distancce有关，当distance发生改变时，x、y同时都会改变）；
+当然，可以把它再转换到笛卡尔坐标系$(x,y,z)$。不过需要注意的是，
+转换之后的$x,y,z$之间存在耦合关系（例如：x、y都与distancce有关，当distance发生改变时，x、y同时都会改变）；
 但是$yaw,pitch,distance$之间则相互独立。\par
 
-从计算深度距离$distance$的公式可以看出最大的不确定的因素就是顶像素点的位置，
+从计算深度距离$distance$的公式可以看出最大的不确定的因素就是顶点像素的位置，
 提取像素点不可能完全的准确。采用图像二值化的方式，提取的轮廓边缘的像素值一定是在阈值附近的，
 有时高于阈值，有时低于阈值，影响就是结算出来的距离一直在波动；且随着距离的增加，构成灯条的像素点数减少，像素点的波动对于测距影响增大，影响就是距离越远，测距误差越大。
 因为上述所说的噪声不可避免，所以采用卡尔曼滤波器得到距离的最优估计值。\par
@@ -72,6 +67,10 @@
     \caption{过拟合现象} 
     \label{过拟合现象} 
 \end{figure} 
+
+综上所述，建立的运动模型为$yaw$方向匀速运动，深度方向匀速运动。
+
+\section{基于卡尔曼滤波器建立目标运动模型}[Content specification]
 
 使用卡尔曼滤波器建立物体运动模型过程如下：
 设由PnP算法解算出目标在相机坐标系 ($c$系)的坐标为：
