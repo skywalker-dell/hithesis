@@ -13,17 +13,17 @@
 目标检测是计算机视觉中最重要的实际应用之一。总体上的研究思路可以分为传统算法和深度学习两种。
 传统算法做主要分为背景建模法与前景建模法，主要的研究思路是：区域选取、特征提取、特征分类。
 深度学习则可以分为一阶段检测算法和两阶段检测算法。
-二阶段检测算法以R-CNN\cite{Girshick_2014_CVPR}、Fast R-CNN\cite{Girshick_2015_ICCV}、Faster R-CNN\cite{NIPS2015_14bfa6bb}为代表，这类算法精度较高，但是其推理速度较慢;
-一阶段检测算法以YOLO\cite{redmon2016you}为代表，兼顾精度与速度，是目前常用的检测算法。 \par
+二阶段检测算法以R-CNN、Fast R-CNN、Faster R-CNN为代表，这类算法精度较高，但是其推理速度较慢;
+一阶段检测算法以YOLO为代表，兼顾精度与速度，是目前常用的检测算法。 \par
 
-关于目标追踪我们仅讨论基于可见光图像的多目标追踪MOT\cite{gomes2008overview}。
-在多目标追踪领域，SORT\cite{bewley2016simple}是一种非常具有代表性的算法。其原理是通过Faster R-CNN检测目标，得到检验框后通过
+关于目标追踪我们仅讨论基于可见光图像的多目标追踪MOT。
+在多目标追踪领域，SORT是一种非常具有代表性的算法。其原理是通过Faster R-CNN检测目标，得到检验框后通过
 线性卡尔曼滤波预测它们在下一帧中的位置，然后将位置预测结果与目标检测框通过IOU值进行匈牙利匹配，从而获得追踪框。
-之后又有一些改进的算法，如：Deep SORT\cite{wojke2017simple}等。
+之后又有一些改进的算法，如：Deep SOR等。
 
-从20世纪80年代甚至更早，高斯模型、线性近似模型和位置跟踪组成了最初的Kalman Filters\cite{welch1995introduction, fujii2013extended, liu2011unscented}
+从20世纪80年代甚至更早，高斯模型、线性近似模型和位置跟踪组成了最初的Kalman Filters
 框架,在95年代，离散的方法论开始在拓扑型表征和栅格模型表征上进行全局定位、重定位和不确定处理（POMDPs）的研究，
-再到了99年，无参滤波器Particle Filters\cite{chen2003bayesian, gustafsson2002particle}开始在基于采样方法的定位、重定位方向上大展身手，
+再到了99年，无参滤波器Particle Filters开始在基于采样方法的定位、重定位方向上大展身手，
 现在，各个假说和前提条件下的滤波器研究成了研究的热门，如EKF的各个变体：ESKF、MSCKF和IKF都是
 针对不同的应用情况和追求被提出并得到了广泛的应用和优化。
 
