@@ -74,16 +74,16 @@
 \section{基于卡尔曼滤波器建立目标运动模型}[Content specification]
 
 使用卡尔曼滤波器建立物体运动模型过程如下：
-设由PnP算法解算出目标在相机坐标系 ($c$系)的坐标为：
-\begin{equation} \boldsymbol r_c=\left[\begin{array}{c} x_c\\ y_c\\ z_c \end{array}\right] \end{equation}
+将PnP算法解算出目标在相机坐标系 ($c$系)的坐标投影到球坐标系上：
+\begin{equation} \boldsymbol p_c=\left[\begin{array}{c} yaw_c\\ pitch_c \\ distance_c \end{array}\right] \end{equation}
 \par 
-通过机械测量得到相机与云台旋转中心的相对位置，则目标在云台坐标系 ($b$ 系) 的坐标可由 $r_c$经过旋转平移后得到:
-\begin{equation} \boldsymbol r_b=\left[\begin{array}{c} x_b\\ y_b\\ z_b \end{array}\right] =\boldsymbol C_{c}^{b}\boldsymbol r_c + \boldsymbol t_{c}^{b} \end{equation}
+通过机械测量得到相机与云台旋转中心的相对位置，则目标在云台坐标系 ($g$ 系) 的坐标可由 $r_c$经过旋转平移后得到:
+\begin{equation} \boldsymbol p_g=\left[\begin{array}{c} yaw_g\\ pitch_g\\ distance_g \end{array}\right] =\boldsymbol C_{c}^{g}\boldsymbol p_c + \boldsymbol t_{c}^{g} \end{equation}
 \par 
 然后根据陀螺仪数据将云台系坐标转换成惯性系坐标（即对于一个固定目标，即使云台动，观测坐标也不会变化）：
 
 
-\begin{equation} \boldsymbol r_n=\left[\begin{array}{c} x_n\\ y_n\\ z_n \end{array}\right] =\boldsymbol C_{b}^{n}\boldsymbol r_b \end{equation}
+\begin{equation} \boldsymbol p_i=\left[\begin{array}{c} yaw_i\\ pitch_i\\ distance_i \end{array}\right] =\boldsymbol C_{g}^{i}\boldsymbol p_g \end{equation}
 
 \par
 采用匀速模型描述目标在惯性系的运动,以下为离散形式：
@@ -92,7 +92,7 @@
 
 
 利用匀速模型设计卡尔曼滤波器以估计目标在惯性系的位置与速度，
-设状态变量为：\begin{equation} \boldsymbol x =\left[\begin{array}{c} x_n\\ \dot x_n\\ y_n\\ \dot y_n\\ z_n\\ \dot z_n \end{array}\right] \end{equation}
+设状态变量为：\begin{equation} \boldsymbol x =\left[\begin{array}{c} yaw_i\\ \dot {yaw_i}\\ pitch_i\\ \dot {pitch_i} \\ distance_i\\ \dot {distance_i} \end{array}\right] \end{equation}
 \par
 过程模型为：\begin{equation} \boldsymbol  x_{k+1} = \boldsymbol F_k\boldsymbol  x_k + \boldsymbol{\Gamma}_{k}\boldsymbol {w}_{k}, \quad \boldsymbol {w}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol Q_k \right) \end{equation}
 
@@ -101,15 +101,15 @@
 \begin{equation} A =\left[\begin{array}{cccccc} 1 &  \Delta t & 0 &0&0&0\\ 0 &  1 & 0 &0&0&0\\ 0 & 0 & 1&  \Delta t & 0 &0\\ 0&0&   0&1 &0 &0\\ 0 &0& 0 &0& 1 &\Delta t \\ 0 &0& 0 & 0 &0 &1 \end{array}\right] \end{equation}
 
 过程噪声方差阵$Q_k$：
-\begin{equation} \boldsymbol Q_k =\left[\begin{array}{ccc} \sigma_x^2 &  0 & 0 \\ 0 &  \sigma_y^2 & 0 \\ 0 & 0 & \sigma_z^2 \end{array}\right] \end{equation}
+\begin{equation} \boldsymbol Q_k =\left[\begin{array}{ccc} \sigma_{yaw}^2 &  0 & 0 \\ 0 &  \sigma_{pitch}^2 & 0 \\ 0 & 0 & \sigma_{distance}^2 \end{array}\right] \end{equation}
 \par
-其中 $\sigma_x^2$，$\sigma_y ^2$，$\sigma_z^2$分别$x$，$y$，$z$三轴过程噪声方差。
+其中 $\sigma_{yaw}^2$，$\sigma_{pitch}^2$，$\sigma_{distance}^2$分别$yaw$，$pitch$，$distance$三轴过程噪声方差。
 \par
 
 
-量测模型如下：\begin{equation} \boldsymbol  z_{k} = \boldsymbol H_k\boldsymbol x_k + \boldsymbol {v}_{k} \end{equation}
+观测模型如下：\begin{equation} \boldsymbol  z_{k} = \boldsymbol H_k\boldsymbol x_k + \boldsymbol {v}_{k} \end{equation}
 \par
-采用目标惯性系坐标作为量测向量，\begin{equation} r_n = [x_n,y_n,z_n]^T \end{equation} 
+采用目标惯性系坐标作为量测向量，\begin{equation} p_i = [yaw_i,pitch_i,distance_i]^T \end{equation} 
 \par
 则：
 \begin{equation} \begin{aligned} \boldsymbol H_k &=  \left[\begin{array}{cccccc} 1 & 0 &0 &0 &  0 &0   \\ 0 &0 &1 &0 &0 &0 \\ 0 &0 &0 &0 &1 &0  \end{array}\right],\boldsymbol {v}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol {R}_k\right) \end{aligned} \end{equation}
