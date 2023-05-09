@@ -83,7 +83,7 @@
     r = \frac{yaw\_speed_{gimbal}}{yaw\_speed_{gimbal} + yaw\_speed_{car}}
 \end{gather}
 
-最后得到的陀螺区间角度计算公式如下（将该角度加到左端角度或右端角度）即为最终云台设定yaw角度：
+最后得到的陀螺区间角度计算公式如下（将该角度加到左端角度或右端角度）即为最终云台设定yaw角度。
 \begin{lstlisting}
     radio = double(4.0 * time / period)- int(4.0 * time / period);
     r = yaw_speed_gimbal / (yaw_speed_gimbal + yaw_speed_car);
