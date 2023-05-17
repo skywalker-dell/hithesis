@@ -96,6 +96,7 @@
 %   含义：字距设置为规范规定33个字还是word中34个字。默认regu。
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{hithesis}
+\usepackage{pdfpages}
 \usepackage{float}
 \usepackage{enumitem}
 \usepackage{listings}
@@ -151,12 +152,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 本科书序（威海校区）
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \authorization %授权
+\authorization %授权
 \bibliography{reference} % 参考文献
 % \authorization[scan.pdf] %添加扫描页的命令，与上互斥
 \include{back/acknowledgements} %致谢
 \begin{appendix}%附录
 \input{back/tools}
+\input{back/camera_disp}
+
 \end{appendix}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 硕博书序
