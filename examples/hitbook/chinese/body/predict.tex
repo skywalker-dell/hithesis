@@ -173,7 +173,17 @@
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{kalman_example.png} 
+    \includegraphics[width=\textwidth]{kalman_example.png} 
     \caption{卡尔曼滤波器滤波效果}
     \label{滤波} 
+\end{figure}    
+
+预测效果如下图\ref{预测效果}所示，其中红色点为预测点，白色圆圈为历史预测器对当前位置的预测，
+可以看出，在物体从右向左匀速移动时，预测器效果很好，白色圆圈始终位于装甲板上，而在左侧换向时，由于非线性，
+白色圆圈偏离装甲板区域，换向完成后，白色圆圈又逐渐回到装甲板上。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{predict_demo.png} 
+    \caption{运动物体预测效果}
+    \label{预测效果} 
 \end{figure}    
