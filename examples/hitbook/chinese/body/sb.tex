@@ -111,18 +111,7 @@
 
 \par
 
-其中$F$为阻力，$k$为最终空气阻力系数，$\rho$为空气密度，一般取$1.293kg/m^3$，S为球截面积，$v$为球体速度，$C_d$为阻力系数，与雷诺数$R_e$有关系，关系如图\ref{空气阻力系数与雷诺数关系}所示。
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.8\textwidth]{leinuo.png} 
-    \caption{阻力系数与雷诺数的关系} 
-    \label{空气阻力系数与雷诺数关系}
-\end{figure}
-
-\par 
-
-雷诺数计算见公式（6-2）。
+其中$F$为阻力，$k$为最终空气阻力系数，$\rho$为空气密度，一般取$1.293kg/m^3$，S为球截面积，$v$为球体速度，$C_d$为阻力系数，与雷诺数$R_e$有关系，雷诺数计算见公式（6-2）。
 \begin{gather}
     R_e = \frac{\rho v D}{\eta}
 \end{gather}
@@ -131,14 +120,8 @@
 
 
 \subsection{弹道迭代计算}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.8\textwidth]{trajectory.png} 
-    \caption{弹丸受力分析图} 
-    \label{弹丸受力分析图}
-\end{figure}
 
-如上所述，我们只考虑水平方向的空气阻力。弹丸的动力学微分方程见公式（6-3）和（6-4），
+我们只考虑水平方向的空气阻力。弹丸的动力学微分方程见公式（6-3）和（6-4），
 分别代表在水平方向和竖直方向的动力学方程。其中$m$代表弹丸质量，
 $v_x$代表在水平方向的速度，$v_y$代表在竖直方向的速度，$t$代表时间，$g$代表重力加速度，$k$代表最终空气阻力系数。
 \begin{gather}

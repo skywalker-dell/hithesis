@@ -75,20 +75,20 @@
 
 使用卡尔曼滤波器建立物体运动模型过程如下。
 \par
-将EPnP算法解算出目标在相机坐标系 ($c$系)的坐标$p_c$投影到球坐标系上，见公式（3-4）：
+将EPnP算法解算出目标在相机坐标系 ($c$系)的坐标$\boldsymbol p_c$投影到球坐标系上，见公式（3-4）：
 \begin{equation} \boldsymbol p_c=\left[\begin{array}{c} yaw_c\\ pitch_c \\ distance_c \end{array}\right] \end{equation}
 \par 
-通过机械测量得到相机与云台旋转中心的相对位置，则目标在云台坐标系 ($g$ 系)的坐标$p_g$可由 $r_c$经过旋转平移后得到，见公式（3-5）。
+通过机械测量得到相机与云台旋转中心的相对位置（用平移矩阵$\boldsymbol t_{c}^{g}$和旋转矩阵$\boldsymbol C_{c}^{g}$描述），则目标在云台坐标系 ($g$ 系)的坐标可经过旋转平移后得到，见公式（3-5）。
 \begin{equation} \boldsymbol p_g=\left[\begin{array}{c} yaw_g\\ pitch_g\\ distance_g \end{array}\right] =\boldsymbol C_{c}^{g}\boldsymbol p_c + \boldsymbol t_{c}^{g} \end{equation}
 \par 
-然后根据陀螺仪数据将云台系坐标转换成惯性系坐$p_i$（即对于一个固定目标，即使云台动，观测坐标也不会变化），见公式（3-6）。
+然后根据陀螺仪数据计算旋转矩阵$\boldsymbol C_{g}^{i}$将云台系坐标转换成惯性系坐标$\boldsymbol p_i$（即对于一个固定目标，即使云台动，观测坐标也不会变化），见公式（3-6）。
 
 
 \begin{equation} \boldsymbol p_i=\left[\begin{array}{c} yaw_i\\ pitch_i\\ distance_i \end{array}\right] =\boldsymbol C_{g}^{i}\boldsymbol p_g \end{equation}
 
 \par
-采用匀速模型描述目标在惯性系的运动，离散形式见公式（3-7），其中$x_{k+1}$表示下一时刻的状态量，$x_k$表示当前时刻的状态量，$\Delta t$代表两帧之间的时间差值，$w_k$表示过程噪声。
-\begin{equation} \boldsymbol x_{k+1} =\left[\begin{array}{cc} {1} & \Delta t  \\ 0 & {1}  \end{array}\right]\boldsymbol x_{k} + \left[\begin{array}{c} {\frac{1}{2}\Delta t^2} \\ {\Delta t}  \end{array}\right]w_k \end{equation}
+采用匀速模型描述目标在惯性系的运动，离散形式见公式（3-7），其中$\boldsymbol x_{k+1}$表示下一时刻的状态量，$\boldsymbol x_k$表示当前时刻的状态量，$\Delta t$代表两帧之间的时间差值，$\boldsymbol w_k$表示过程噪声。
+\begin{equation} \boldsymbol x_{k+1} =\left[\begin{array}{cc} {1} & \Delta t  \\ 0 & {1}  \end{array}\right]\boldsymbol x_{k} + \left[\begin{array}{c} {\frac{1}{2}\Delta t^2} \\ {\Delta t}  \end{array}\right] \boldsymbol w_k \end{equation}
 
 
 
@@ -98,18 +98,18 @@
 \begin{equation} \boldsymbol  x_{k+1} = \boldsymbol F_k\boldsymbol  x_k + \boldsymbol{\Gamma}_{k}\boldsymbol {w}_{k}, \quad \boldsymbol {w}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol Q_k \right) \end{equation}
 
 过程矩阵见公式（3-10）
-\begin{equation} F_k =\left[\begin{array}{cccccc} 1 &  \Delta t & 0 &0&0&0\\ 0 &  1 & 0 &0&0&0\\ 0 & 0 & 1&  \Delta t & 0 &0\\ 0&0&   0&1 &0 &0\\ 0 &0& 0 &0& 1 &\Delta t \\ 0 &0& 0 & 0 &0 &1 \end{array}\right] \end{equation}
+\begin{equation} \boldsymbol F_k =\left[\begin{array}{cccccc} 1 &  \Delta t & 0 &0&0&0\\ 0 &  1 & 0 &0&0&0\\ 0 & 0 & 1&  \Delta t & 0 &0\\ 0&0&   0&1 &0 &0\\ 0 &0& 0 &0& 1 &\Delta t \\ 0 &0& 0 & 0 &0 &1 \end{array}\right] \end{equation}
 
-过程噪声协方差阵$Q_k$见公式（3-12）， 其中 $\sigma_{yaw}^2$，$\sigma_{pitch}^2$，$\sigma_{distance}^2$分别$yaw$，$pitch$，$distance$三轴过程噪声方差。
+过程噪声协方差阵$\boldsymbol Q_k$见公式（3-12）， 其中 $\sigma_{yaw}^2$，$\sigma_{pitch}^2$，$\sigma_{distance}^2$分别$yaw$，$pitch$，$distance$三轴过程噪声方差。
 \begin{equation} \boldsymbol Q_k =\left[\begin{array}{ccc} \sigma_{yaw}^2 &  0 & 0 \\ 0 &  \sigma_{pitch}^2 & 0 \\ 0 & 0 & \sigma_{distance}^2 \end{array}\right] \end{equation}
 \par
 
 
-观测模型见公式（3-13），其中$z_k$为观测量，$H_k$为观测矩阵，$x_k$为状态量，$v_k$为观测噪声。
-\begin{equation} \boldsymbol  z_{k} = \boldsymbol H_k\boldsymbol x_k + \boldsymbol {v}_{k} \end{equation}
+观测模型见公式（3-13），其中$\boldsymbol z_k$为观测量，$\boldsymbol H_k$为观测矩阵，$\boldsymbol x_k$为状态量，$\boldsymbol v_k$为观测噪声。
+\begin{equation} \boldsymbol z_{k} = \boldsymbol H_k\boldsymbol x_k + \boldsymbol {v}_{k} \end{equation}
 \par
-采用目标惯性系坐标作为量测向量，见公式（3-13）。
-\begin{equation} p_i = [yaw_i,pitch_i,distance_i]^T \end{equation} 
+采用目标惯性系坐标$\boldsymbol p_i$作为观测向量，见公式（3-13）。
+\begin{equation}\boldsymbol p_i = [yaw_i,pitch_i,distance_i]^T \end{equation} 
 \par
 则观测矩阵见公式（3-14）。
 \begin{equation} \begin{aligned} \boldsymbol H_k &=  \left[\begin{array}{cccccc} 1 & 0 &0    \\ 0  &1 &0  \\ 0 &0  &1   \end{array}\right],\boldsymbol {v}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol {R}_k\right) \end{aligned} \end{equation}
@@ -159,7 +159,7 @@
     然后设置参数为他们的中间值看表现效果，如表现效果更接近极小值，则更新极小值为中间值，反之则更新极大值为中间值。
     \item 目标距离。使用历史信息拟合的速度$v_x$来对未来做预测，但是前提是速度是不变的，
     否则无法利用过去的速度预测未来的位置，在预测时间$t$内，物体的运动速度是可变的，
-    积分得到的位移变化量就不是$v_x*t$。然而考虑到物体惯性属性，
+    积分得到的位移变化量就不是$v_xt$。然而考虑到物体惯性属性，
     在短时间内速度不会产生较大的突变，实际的位移量与计算的位移量相差不大，那还是可以击中物体的（可以理解为线性近似的误差越小）。
     \item 子弹速度。与目标距离的影响原因一致。子弹速度越大，飞行时间越短，线性近似的误差越小，命中率越高，反之命中率越低。
 
@@ -172,7 +172,7 @@
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{kalman_example.png} 
+    \includegraphics[width=.8\textwidth]{kalman_example.png} 
     \caption{卡尔曼滤波器滤波效果}
     \label{滤波} 
 \end{figure}    
@@ -182,7 +182,7 @@
 白色圆圈偏离装甲板区域，换向完成后，白色圆圈又逐渐回到装甲板上。
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{predict_demo.png} 
+    \includegraphics[width=.8\textwidth]{predict_demo.png} 
     \caption{运动物体预测效果}
     \label{预测效果} 
 \end{figure}    
