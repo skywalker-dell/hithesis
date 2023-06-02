@@ -86,17 +86,22 @@
 在分析识别算法之后发现，由于追踪算法的存在，使得检测的最右端装甲板相对于相机非常倾斜，而此时在左侧装甲板已经出现且相对于相机较为正对。
 正对的装甲板不仅投影面积更大，更好击打；而且子弹与装甲板接触的法向速度更大，更不容易被裁判系统漏掉，因此选择放弃击打陀螺的后半程。
 我们将选择击打的陀螺区间相对于陀螺整个区间记为$r$，假设云台最大角速度为$yaw\_speed_{gimbal}$，陀螺观测角速度为$yaw\_speed_{car}$
-，则有如下公式:
+，云台回调时间为$t$，则有（5-1）公式成立:
 \begin{gather}
     t  \times (yaw\_speed_{gimbal} + yaw\_speed_{car}) = yaw\_section \\
-    r = \frac{t \times yaw\_speed_{gimbal} }{yaw\_section}
 \end{gather}
-从而求得
+
+从而得到$r$的计算公式，见公式（5-2）
+\begin{gather}
+r = \frac{t \times yaw\_speed_{gimbal} }{yaw\_section}
+\end{gather}
+
+将$t$替换掉，得到$r$的计算公式，见公式（5-3）。
 \begin{gather}
     r = \frac{yaw\_speed_{gimbal}}{yaw\_speed_{gimbal} + yaw\_speed_{car}}
 \end{gather}
 
-最后得到的陀螺区间角度计算公式如下（将该角度加到左端角度或右端角度）即为最终云台设定$yaw$角度。
+最后得到的陀螺区间角度计算代码如下（将该角度加到左端角度或右端角度）即为最终云台设定$yaw$角度。
 \begin{lstlisting}
     radio = double(4.0 * time / period)- int(4.0 * time / period);
     r = yaw_speed_gimbal / (yaw_speed_gimbal + yaw_speed_car);
