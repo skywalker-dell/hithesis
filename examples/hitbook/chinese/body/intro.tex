@@ -20,15 +20,15 @@
 
 
 传统机器学习方法主要包括特征提取和分类两个步骤。
-常用的特征提取算法有方向梯度直方图(Histogram of Oriented Gradient, HOG)特征\cite{pang2011efficient}和尺度不变特征转换(Scale-invariant feature transform, SIFT)特征\cite{ng2003sift}等。
+常用的特征提取算法有方向梯度直方图（Histogram of Oriented Gradient, HOG）特征\cite{pang2011efficient}和尺度不变特征转换（Scale-invariant feature transform, SIFT）特征\cite{ng2003sift}等。
 其中，HOG特征主要用于行人检测，SIFT特征主要用于物体检测。
-分类算法主要包括自适应增强(Adaptive Boosting, Adaboost)\cite{hastie2009multi}、支持向量机(Support Vector Machine, SVM)\cite{schuldt2004recognizing}和随机森林(Random Forest, RF)\cite{biau2016random}等。
+分类算法主要包括自适应增强（Adaptive Boosting, Adaboost）\cite{hastie2009multi}、支持向量机（Support Vector Machine, SVM）\cite{schuldt2004recognizing}和随机森林(Random Forest, RF)\cite{biau2016random}等。
 这些算法在一定程度上可以实现目标检测，但是它们的检测效果和速度相对较低，已经逐渐被深度学习算法所替代。
 
 \par
 
 随着深度学习算法的发展，基于深度学习的目标检测算法逐渐成为主流。
-常用的深度学习模型包括快速区域卷积神经网络(Fast R-CNN)\cite{girshick2015fast}、基于单次检测的目标检测算法(You Only Look Once, YOLO)\cite{jiang2022review}等。
+常用的深度学习模型包括快速区域卷积神经网络（Fast R-CNN）\cite{girshick2015fast}、基于单次检测的目标检测算法（You Only Look Once, YOLO）\cite{jiang2022review}等。
 这些算法在目标检测准确率和速度上都有很大的提升，已经广泛应用于各个领域，例如自动驾驶、安防监控、医疗诊断等。
 \par
 此外，当前目标检测算法研究的重点主要集中在以下几个方面：
@@ -85,7 +85,7 @@
 深度学习方法在多目标追踪预测算法中也有广泛的应用\cite{xu2019deep}，
 比如深度排序追踪器(Deep Learning to Track with Sorting, Deep SORT)\cite{wojke2017simple}等。
 这些算法主要利用深度学习网络进行目标检测和特征提取，并使用各种跟踪方法进行目标跟踪和预测。
-例如，Deep SORT使用卷积神经网络（CNN）来提取目标特征，并使用传统的匈牙利算法来关联跟踪器。
+例如，Deep SORT使用卷积神经网络来提取目标特征，并使用传统的匈牙利算法来关联跟踪器。
 这些算法的优势在于准确率高、鲁棒性好，但是计算量大，处理速度相对较慢。
 \par
 融合感知模态的多目标追踪：多模态感知融合是另一个研究热点，旨在利用多个传感器（如摄像头、激光雷达、雷达等）提供的信息来改进多目标追踪性能。通过融合不同传感器的数据，可以提高目标检测和跟踪的鲁棒性，并增强对目标的理解和描述。

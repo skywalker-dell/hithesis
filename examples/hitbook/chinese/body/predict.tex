@@ -8,7 +8,7 @@
 
 运动预测本质上是对运动物体的建模，比如，通过观测得到当前物体的位置，
 并结合历史观测数据（位置、时间戳等）能够计算出物体的运动信息（如速度、加速度等），
-从而能够预测未来在$t$时刻物体的位置，以在一维$x$方向匀速运动的物体为例，其运动学公式见式（3-1），其中$x(t)$表示物理位置随时间的变化，$x_0$表示初位置，$v_x$表示物体在$x$方向上的速度，$t$表示时间。
+从而能够预测未来在$t$时刻物体的位置，以在一维$x$方向匀速运动的物体为例，其运动学公式见公式（3-1），其中$x(t)$表示物理位置随时间的变化，$x_0$表示初位置，$v_x$表示物体在$x$方向上的速度，$t$表示时间。
 \begin{gather}
     x(t) = x_0 + v_xt \label{linear_model}
 \end{gather}
@@ -100,12 +100,12 @@
 过程矩阵见公式（3-10）
 \begin{equation} \boldsymbol F_k =\left[\begin{array}{cccccc} 1 &  \Delta t & 0 &0&0&0\\ 0 &  1 & 0 &0&0&0\\ 0 & 0 & 1&  \Delta t & 0 &0\\ 0&0&   0&1 &0 &0\\ 0 &0& 0 &0& 1 &\Delta t \\ 0 &0& 0 & 0 &0 &1 \end{array}\right] \end{equation}
 
-过程噪声协方差阵$\boldsymbol Q_k$见公式（3-12）， 其中 $\sigma_{yaw}^2$，$\sigma_{pitch}^2$，$\sigma_{distance}^2$分别$yaw$，$pitch$，$distance$三轴过程噪声方差。
+过程噪声协方差阵$\boldsymbol Q_k$见公式（3-11）， 其中 $\sigma_{yaw}^2$，$\sigma_{pitch}^2$，$\sigma_{distance}^2$分别$yaw$，$pitch$，$distance$三轴过程噪声方差。
 \begin{equation} \boldsymbol Q_k =\left[\begin{array}{ccc} \sigma_{yaw}^2 &  0 & 0 \\ 0 &  \sigma_{pitch}^2 & 0 \\ 0 & 0 & \sigma_{distance}^2 \end{array}\right] \end{equation}
 \par
 
 
-观测模型见公式（3-13），其中$\boldsymbol z_k$为观测量，$\boldsymbol H_k$为观测矩阵，$\boldsymbol x_k$为状态量，$\boldsymbol v_k$为观测噪声。
+观测模型见公式（3-12），其中$\boldsymbol z_k$为观测量，$\boldsymbol H_k$为观测矩阵，$\boldsymbol x_k$为状态量，$\boldsymbol v_k$为观测噪声。
 \begin{equation} \boldsymbol z_{k} = \boldsymbol H_k\boldsymbol x_k + \boldsymbol {v}_{k} \end{equation}
 \par
 采用目标惯性系坐标$\boldsymbol p_i$作为观测向量，见公式（3-13）。

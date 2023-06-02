@@ -55,11 +55,11 @@
 \subsection{引言}[Content specification]
 在工业自动化和嵌入式系统中，上位机和下位机之间的时间同步是非常重要的。通常，下位机的时间通常是由硬件时钟提供的，
 而上位机的时间通常是由操作系统提供的。由于硬件时钟和操作系统时钟存在不同步的可能，
-因此需要基于通信方法来同步它们的时间，比如NTP\cite{sommars2022client}就是一种用于同步计算机时钟的协议。
+因此需要基于通信方法来同步它们的时间，比如网络时间协议（Network Time Protoco, NTP）\cite{sommars2022client}就是一种用于同步计算机时钟的协议。
 \par
 
 然而由于下位机目前不支持网络服务，
-因此本章参考NTP同步时钟的思路，通过上下位机的CAN通信实现了双机时钟的统一，
+因此本章参考NTP同步时钟的思路，通过上下位机的控制器局域网（Controller Area Network, CAN）通信实现了双机时钟的统一，
 巧妙地解决了网络服务不可达的问题。
 
 \subsection{通信时延测量}[Content specification]

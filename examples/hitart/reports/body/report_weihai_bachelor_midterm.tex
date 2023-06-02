@@ -7,7 +7,8 @@
 \subsection{目前已完成的研究工作及结果}
 \subsubsection{主从机时钟对齐 }
 在工业自动化和嵌入式系统中，上位机和下位机之间的时间同步是非常重要的。通常，下位机的时间通常是由硬件时钟提供的，
-而上位机的时间通常是由操作系统提供的。由于硬件时钟和操作系统时钟存在不同步的可能，因此需要使用网络时间协议（NTP）等工具来同步它们的时间。\par
+而上位机的时间通常是由操作系统提供的。由于硬件时钟和操作系统时钟存在不同步的可能，
+因此需要使用网络时间协议（Network Time Protoco, NTP）等工具来同步它们的时间。\par
 
 NTP是一种用于同步计算机时钟的协议，可以通过Internet或局域网等网络连接来实现时钟同步，流程如图\ref{ntp}所示。
 NTP通过在网络中分发时间信息来同步时钟，并使用算法来计算不同时钟之间的时间差。使用NTP进行时钟同步时，下位机可以充当NTP客户端，而上位机则可以充当NTP服务器。 \par
@@ -120,11 +121,11 @@ minAreaRect和fitEllipse都是OpenCV内置的API。minAreaRect方法对于灯条
 在得到了所有的可能的灯条后需要将灯条两两匹配，同属于一块装甲板的两个灯条。装甲板为一个很标准的矩形，但是由于观测角度、相机成像等因素，观测到的组成装甲板的两个灯条角度差、长度比等信息会有所不同，
 但是都还是处于一定范围之内的。通过判断两根灯条的x、y方向上的距离、长宽比、倾斜角度、角度差
 等是否满足一定条件可以得到该对灯条是否有可能组成一块装甲板，如果组成一块装甲板的条件通过，则将这一对灯条构成的四边形区域抠出来放入后续的分类器进一步判断。\par
-如下图\ref{传统图像处理算法提取多ROI}所示，传统图像处理算法提取出多个可能存在装甲板的ROI。
+如下图\ref{传统图像处理算法提取多ROI}所示，传统图像处理算法提取出多个可能存在装甲板的感兴趣区域（Region of Interest, ROI）。
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{mutil_roi.png} 
+    \includegraphics[width=.8\textwidth]{detection_first_stage.png} 
     \caption{传统图像处理算法提取多ROI} 
     \label{传统图像处理算法提取多ROI}
 \end{figure}
@@ -132,12 +133,12 @@ minAreaRect和fitEllipse都是OpenCV内置的API。minAreaRect方法对于灯条
 \subsubsection{检测算法中的深度学习部分}
 
 为了防止出现误识别的情况，提取到“装甲板”对应的ROI区域后需要将它们放入分类器去进行分类，此外对于不同的兵种（装甲板对应不同的数字）击打的优先级是不同的，因此对于装甲板类别的判断是非常重要的。\par
-目前对于图像分类的方式有许多种，比如基于卷积神经网络方案和传统机器学习（如SVM\cite{cortes1995support}）
+目前对于图像分类的方式有许多种，比如基于卷积神经网络方案和传统机器学习（如支持向量机（Support Vector Machine, SVM）\cite{cortes1995support}）
 等。我们的任务是实现装甲板分类，装甲板的特征比较简单但是类别较多，同时还需要具备对于负样本的判断能力，
 基于这几个特点选用卷积神经网络实现图像分类任务。
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{classify_network_structure.png} 
+    \includegraphics[width=\textwidth]{classify_network_structure.png} 
     \caption{分类器网络结构} 
     \label{分类器网络结构}
 \end{figure}
@@ -147,14 +148,6 @@ minAreaRect和fitEllipse都是OpenCV内置的API。minAreaRect方法对于灯条
 对于此问题所采用的解决方案是在两层卷积层之后引入一个残差块，将前两层卷积所提取到的特征信息与第三层卷积层的计算结果融合起来，
 然后再去使用全局平均池化，经过测试发现最终它所能达到的准确超过全连接神经网络。网络结构如图\ref{分类器网络结构}所示。
 
-
-下图\ref{网络训练时准确率与LOSS值收敛过程}展示训练时的准确率、LOSS值的变化。
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.8\textwidth]{train.png} 
-    \caption{网络训练时准确率与LOSS值收敛过程} 
-    \label{网络训练时准确率与LOSS值收敛过程}
-\end{figure}
 
 
 下图\ref{分类器测试结果}展示训练后的神经网络在面对新数据时的表现。可以看到神经网络分类器对于模糊、有噪声干扰、形状不一的图片都有很好的表现。
@@ -175,7 +168,7 @@ minAreaRect和fitEllipse都是OpenCV内置的API。minAreaRect方法对于灯条
 
 \subsubsection{卡尔曼滤波器}
 卡尔曼滤波器是用来对数据滤波的，与运动预测没有直接关系。他起到的作用是为运动预测的输入数据源进行平滑处理，
-且目的是得到真值。\par
+且目的是得到最优估计值。\par
 
 本段介绍卡尔曼滤波器的核心思想。考虑如下情形：目的是得到目标在时刻$t$目标的位置。首先可以通过观测得到，
 然而观测会有噪声，一个减小误差的手段是选取一段时间区间内的平均观测值作为目标在$t$时刻的位置，
@@ -190,31 +183,32 @@ minAreaRect和fitEllipse都是OpenCV内置的API。minAreaRect方法对于灯条
     \hat{x}_k = k*\hat{x}_k^{-} + (1-k)*x_k
 \end{gather}
 
-k该如何取值呢，最简单的想法是取平均值（即$k=0.5$），然而这种方法没有充分考虑两种数据来源的不确定度。
+$k$该如何取值呢，最简单的想法是取平均值（即$k=0.5$），然而这种方法没有充分考虑两种数据来源的不确定度。
 预测值有噪声，观测值有噪声，理论上一种数据源的噪声越大，则该数据源对于最终的融合值的贡献越低，从而使得融合值的噪声越小。
 卡尔曼给出的优化目标是让这个融合的值的噪声的方差最小。
 即，系统的白噪声激励和测量噪声并不是需要滤除的对象，它们的统计特性是估计过程中需要利用的信息，这一点与最小二乘和平均值法是有区别的。卡尔曼基本模型如图\ref{卡尔曼滤波器}所示：
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{kalman_filter_model.png} 
-    \caption{卡尔曼滤波器} 
+    \caption{卡尔曼滤波器\cite{1995An}} 
     \label{卡尔曼滤波器} 
 \end{figure} 
 
 \subsubsection{运动预测}
 
-
 运动预测本质上是对运动物体的建模，比如，通过观测得到当前物体的位置，
 并结合历史观测数据（位置、时间戳等）能够计算出物体的运动信息（如速度、加速度等），
-从而能够预测未来在$t$时刻物体的位置，以在一维$x$方向匀速运动的物体为例: 
+从而能够预测未来在$t$时刻物体的位置，以在一维$x$方向匀速运动的物体为例，其运动学公式见公式（2），其中$x(t)$表示物理位置随时间的变化，$x_0$表示初位置，$v_x$表示物体在$x$方向上的速度，$t$表示时间。
 \begin{gather}
-    x(t) = x_0 + v_x*t
+    x(t) = x_0 + v_xt \label{linear_model}
 \end{gather}
 
-对运动物体的建模即为假定一个运动模型，通过历史数据拟合参数，
-比如，匀速运动模型为通过一堆带着时间信息的坐标点去拟合速度。\par
+对运动物体的建模即为假定一个运动模型，通过历史数据拟合参数。
+比如，匀速运动模型为通过一堆带着时间信息的坐标点去拟合速度。
 
-考虑坐标系的选择。通过PnP算法或者是其他算法解算的目标位置（实际上得到的是位置和姿态，
+\par
+
+考虑坐标系的选择。通过高效透视n点算法(Efficient Perspective-n-Point algorithm, EPnP)算法或者是其他算法解算的目标位置（实际上得到的是位置和姿态，
 但是运动预测不需要目标的姿态，因此下文只考虑目标的位置）的坐标系是相机坐标系，但是，
 云台运动时相机坐标系的位姿也会有变化，观测的相对于大地静止的目标也会发生变化，这样不利于建立运动模型。所以，
 需要将目标的位置坐标转换到惯性坐标系下，这样目标点的位置不随着云台运动而运动，从而可以建立准确的运动学模型。\par
@@ -222,7 +216,7 @@ k该如何取值呢，最简单的想法是取平均值（即$k=0.5$），然而
 其实得到是目标相对于相机坐标系的$yaw$和$pitch$轴角度信息，
 即，相机成像的物理模型使得在观测物体的位置时选择的坐标系为球坐标系。
 至于深度信息，即球半径，单目相机在没有先验知识的情况下是无法结算出的。
-然而装甲板的实际尺寸大小是已知的(先验)，由透镜成像的物理模型(图\ref{透镜成像模型})可得：\par
+然而装甲板的实际尺寸大小是已知的(先验)，由透镜成像的物理模型(图\ref{透镜成像模型})可得公式（3），其中$d$为物体距离相机光心深度值，$f$为相机焦距，$h$为物体实际高度，$y$为物体成像高度。\par
 \begin{gather}
     d = \frac{fh}{y} 
 \end{gather}
@@ -235,31 +229,25 @@ k该如何取值呢，最简单的想法是取平均值（即$k=0.5$），然而
 \end{figure}    
 这样，通过计算灯条的像素高度、事先标定好的相机内参中的$f_y$和先验装甲版实际高度就可以计算出目标相对于相机的实际距离。
 注意，上面的$y$的单位不是像素，而是$mm$、$m$这样的单位，
-而实际从图像上读的是像素值，因此实际的计算公式如下：
+而实际从图像上读的是像素值，因此实际的计算见公式（4），其中$d_y$为$y$轴像元尺寸，$f_y$为$y$轴的归一化焦距。
 \begin{gather}
     d=\frac{fh}{y_{像素}}=\frac{fh}{y*dy}=\frac{f_yh}{y}
 \end{gather}
 这样，就得到了物体在相机坐标系下的位置描述$(yaw,pitch, distance)$。
-当然，可以把它再转换到笛卡尔坐标系$(x,y,z)$
-\begin{gather}
-    x = distance*cos(pitch)*sin(yaw) \\
-    y = distance*cos(pitch)*cos(yaw) \\
-    z = distacne * sin(pitch)
-\end{gather} \par
-不过需要注意的是，转换之后的$x,y,z$之间存在耦合关系（例如：x、y都与distancce有关，当distance发生改变时，x、y同时都会改变）；
-但是$yaw,pitch,distance$之间则相互独立。\par
+当然，可以把它再转换到笛卡尔坐标系$(x,y,z)$。不过需要注意的是，
+转换之后的$x,y,z$之间存在耦合关系（例如：$x$、$y$都与$distancce$有关，当$distance$发生改变时，$x$、$y$同时都会改变）；
+但是$yaw$、$pitch$、$distance$之间则相互独立。\par
 
-从计算深度距离$distance$的公式可以看出最大的不确定的因素就是顶像素点的位置，
+从计算深度距离$distance$的公式可以看出最大的不确定的因素就是顶点像素的位置，
 提取像素点不可能完全的准确。采用图像二值化的方式，提取的轮廓边缘的像素值一定是在阈值附近的，
 有时高于阈值，有时低于阈值，影响就是结算出来的距离一直在波动；且随着距离的增加，构成灯条的像素点数减少，像素点的波动对于测距影响增大，影响就是距离越远，测距误差越大。
-因为上述所说的噪声不可避免，所以采用卡尔曼滤波器得到距离的最优估计值。\par
-
+因为上述所说的噪声不可避免，所以采用卡尔曼滤波器得到深度信息的最优估计值。\par
 
 要使用卡尔曼滤波器，我们首先需要确定运动模型。对于运动模型，首先需要明确的是运动模型实际上是无法用数学公式描述的，
 即使能够用数学公式描述对于而言也是不可知的。 所以只能假设它是匀速运动模型或者是匀加速运动模型或是其他运动模型。
 对于RoboMaster比赛来说，匀速运动模型能够应对大多数场合。然而，机器人加减速频繁，那么选择匀加速模型是不是更准确呢？ 
 经过测试发现，引入加速度后，从原先只需要拟合一个参数变成了拟合两个参数，容易造成拟合结果的不准确。且容易产生过拟合现象。
-如下图所示，高阶模型固然对已有的点拟合的准确，但从图中\ref{过拟合现象}明显可以看出如果新加一个点，必然与拟合的曲线相差甚大。
+如下图所示，高阶模型固然对已有的点拟合的准确，但从图\ref{过拟合现象}中明显可以看出如果新加一个点，必然与拟合的曲线相差甚大。
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{overfit_demo.png} 
@@ -267,56 +255,50 @@ k该如何取值呢，最简单的想法是取平均值（即$k=0.5$），然而
     \label{过拟合现象} 
 \end{figure} 
 
-使用卡尔曼滤波器建立物体运动模型过程如下：
-设由PnP算法解算出目标在相机坐标系 ($c$系)的坐标为：
-\begin{equation} \boldsymbol r_c=\left[\begin{array}{c} x_c\\ y_c\\ z_c \end{array}\right] \end{equation}
+综上所述，建立的运动模型为$yaw$方向匀速运动，深度方向匀速运动。
+
+
+使用卡尔曼滤波器建立物体运动模型过程如下。
+\par
+将EPnP算法解算出目标在相机坐标系 ($c$系)的坐标$\boldsymbol p_c$投影到球坐标系上，见公式（5）：
+\begin{equation} \boldsymbol p_c=\left[\begin{array}{c} yaw_c\\ pitch_c \\ distance_c \end{array}\right] \end{equation}
 \par 
-通过机械测量得到相机与云台旋转中心的相对位置，则目标在云台坐标系 ($b$ 系) 的坐标可由 $r_c$经过旋转平移后得到:
-\begin{equation} \boldsymbol r_b=\left[\begin{array}{c} x_b\\ y_b\\ z_b \end{array}\right] =\boldsymbol C_{c}^{b}\boldsymbol r_c + \boldsymbol t_{c}^{b} \end{equation}
+通过机械测量得到相机与云台旋转中心的相对位置（用平移矩阵$\boldsymbol t_{c}^{g}$和旋转矩阵$\boldsymbol C_{c}^{g}$描述），则目标在云台坐标系 ($g$ 系)的坐标可经过旋转平移后得到，见公式（6）。
+\begin{equation} \boldsymbol p_g=\left[\begin{array}{c} yaw_g\\ pitch_g\\ distance_g \end{array}\right] =\boldsymbol C_{c}^{g}\boldsymbol p_c + \boldsymbol t_{c}^{g} \end{equation}
 \par 
-然后根据陀螺仪数据将云台系坐标转换成惯性系坐标（即对于一个固定目标，即使云台动，观测坐标也不会变化）：
+然后根据陀螺仪数据计算旋转矩阵$\boldsymbol C_{g}^{i}$将云台系坐标转换成惯性系坐标$\boldsymbol p_i$（即对于一个固定目标，即使云台动，观测坐标也不会变化），见公式（7）。
 
 
-\begin{equation} \boldsymbol r_n=\left[\begin{array}{c} x_n\\ y_n\\ z_n \end{array}\right] =\boldsymbol C_{b}^{n}\boldsymbol r_b \end{equation}
+\begin{equation} \boldsymbol p_i=\left[\begin{array}{c} yaw_i\\ pitch_i\\ distance_i \end{array}\right] =\boldsymbol C_{g}^{i}\boldsymbol p_g \end{equation}
 
 \par
-采用匀速模型描述目标在惯性系的运动,以下为离散形式：
-\begin{equation} \boldsymbol x_{k+1} =\left[\begin{array}{cc} {1} & \Delta t  \\ 0 & {1}  \end{array}\right]\boldsymbol x_{k} + \left[\begin{array}{c} {\frac{1}{2}\Delta t^2} \\ {\Delta t}  \end{array}\right]w_k \end{equation}
+采用匀速模型描述目标在惯性系的运动，离散形式见公式（8），其中$\boldsymbol x_{k+1}$表示下一时刻的状态量，$\boldsymbol x_k$表示当前时刻的状态量，$\Delta t$代表两帧之间的时间差值，$\boldsymbol w_k$表示过程噪声。
+\begin{equation} \boldsymbol x_{k+1} =\left[\begin{array}{cc} {1} & \Delta t  \\ 0 & {1}  \end{array}\right]\boldsymbol x_{k} + \left[\begin{array}{c} {\frac{1}{2}\Delta t^2} \\ {\Delta t}  \end{array}\right] \boldsymbol w_k \end{equation}
 
 
 
-利用匀速模型设计卡尔曼滤波器以估计目标在惯性系的位置与速度，
-设状态变量为：\begin{equation} \boldsymbol x =\left[\begin{array}{c} x_n\\ \dot x_n\\ y_n\\ \dot y_n\\ z_n\\ \dot z_n \end{array}\right] \end{equation}
+利用匀速模型设计卡尔曼滤波器估计目标在惯性系的位置与速度，状态变量见公式（9）。\begin{equation} \boldsymbol x =\left[\begin{array}{c} yaw_i\\ \dot {yaw_i}\\ pitch_i\\ \dot {pitch_i} \\ distance_i\\ \dot {distance_i} \end{array}\right] \end{equation}
 \par
-过程模型为：\begin{equation} \boldsymbol  x_{k+1} = \boldsymbol F_k\boldsymbol  x_k + \boldsymbol{\Gamma}_{k}\boldsymbol {w}_{k}, \quad \boldsymbol {w}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol Q_k \right) \end{equation}
+过程模型见公式（10），其中$F_k$表示过程矩阵，$\Gamma_{k}$表示噪声方程。
+\begin{equation} \boldsymbol  x_{k+1} = \boldsymbol F_k\boldsymbol  x_k + \boldsymbol{\Gamma}_{k}\boldsymbol {w}_{k}, \quad \boldsymbol {w}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol Q_k \right) \end{equation}
 
-其中： 
-\begin{equation} F_k =\left[\begin{array}{cccccc} 1 &  \Delta t & 0 &0&0&0\\ 0 &  1 & 0 &0&0&0\\ 0 & 0 & 1&  \Delta t & 0 &0\\ 0&0&   0&1 &0 &0\\ 0 &0& 0 &0& 1 &\Delta t \\ 0 &0& 0 & 0 &0 &1 \end{array}\right] \end{equation}
-\begin{equation} A =\left[\begin{array}{cccccc} 1 &  \Delta t & 0 &0&0&0\\ 0 &  1 & 0 &0&0&0\\ 0 & 0 & 1&  \Delta t & 0 &0\\ 0&0&   0&1 &0 &0\\ 0 &0& 0 &0& 1 &\Delta t \\ 0 &0& 0 & 0 &0 &1 \end{array}\right] \end{equation}
+过程矩阵见公式（11）
+\begin{equation} \boldsymbol F_k =\left[\begin{array}{cccccc} 1 &  \Delta t & 0 &0&0&0\\ 0 &  1 & 0 &0&0&0\\ 0 & 0 & 1&  \Delta t & 0 &0\\ 0&0&   0&1 &0 &0\\ 0 &0& 0 &0& 1 &\Delta t \\ 0 &0& 0 & 0 &0 &1 \end{array}\right] \end{equation}
 
-过程噪声方差阵$Q_k$：
-\begin{equation} \boldsymbol Q_k =\left[\begin{array}{ccc} \sigma_x^2 &  0 & 0 \\ 0 &  \sigma_y^2 & 0 \\ 0 & 0 & \sigma_z^2 \end{array}\right] \end{equation}
-\par
-其中 $\sigma_x^2$，$\sigma_y ^2$，$\sigma_z^2$分别$x$，$y$，$z$三轴过程噪声方差。
+过程噪声协方差阵$\boldsymbol Q_k$见公式（12）， 其中 $\sigma_{yaw}^2$，$\sigma_{pitch}^2$，$\sigma_{distance}^2$分别$yaw$，$pitch$，$distance$三轴过程噪声方差。
+\begin{equation} \boldsymbol Q_k =\left[\begin{array}{ccc} \sigma_{yaw}^2 &  0 & 0 \\ 0 &  \sigma_{pitch}^2 & 0 \\ 0 & 0 & \sigma_{distance}^2 \end{array}\right] \end{equation}
 \par
 
 
-量测模型如下：\begin{equation} \boldsymbol  z_{k} = \boldsymbol H_k\boldsymbol x_k + \boldsymbol {v}_{k} \end{equation}
+观测模型见公式（13），其中$\boldsymbol z_k$为观测量，$\boldsymbol H_k$为观测矩阵，$\boldsymbol x_k$为状态量，$\boldsymbol v_k$为观测噪声。
+\begin{equation} \boldsymbol z_{k} = \boldsymbol H_k\boldsymbol x_k + \boldsymbol {v}_{k} \end{equation}
 \par
-采用目标惯性系坐标作为量测向量，\begin{equation} r_n = [x_n,y_n,z_n]^T \end{equation} 
+采用目标惯性系坐标$\boldsymbol p_i$作为观测向量，见公式（14）。
+\begin{equation}\boldsymbol p_i = [yaw_i,pitch_i,distance_i]^T \end{equation} 
 \par
-则：
-\begin{equation} \begin{aligned} \boldsymbol H_k &=  \left[\begin{array}{cccccc} 1 & 0 &0 &0 &  0 &0   \\ 0 &0 &1 &0 &0 &0 \\ 0 &0 &0 &0 &1 &0  \end{array}\right],\boldsymbol {v}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol {R}_k\right) \end{aligned} \end{equation}
-% \\\begin{equation} \begin{aligned} \boldsymbol H_k &=  \left[\begin{array}{cccccc} 1 & 0 &0 &0 &  0 &0   \\ 0 &0 &1 &0 &0 &0 \\ 0 &0 &0 &0 &1 &0  \end{array}\right],\boldsymbol {v}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol {R}_k\right) \end{aligned} \end{equation}\\　　
-% \par
-% 根据图\ref{相机模型}相机模型
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=.8\textwidth]{camera_model.jpg} 
-%     \caption{相机模型} 
-%     \label{相机模型} 
-% \end{figure} 
-\par
+则观测矩阵见公式（15）。
+\begin{equation} \begin{aligned} \boldsymbol H_k &=  \left[\begin{array}{cccccc} 1 & 0 &0    \\ 0  &1 &0  \\ 0 &0  &1   \end{array}\right],\boldsymbol {v}_{k} \sim N\left(\boldsymbol 0_{3 \times 1}, \boldsymbol {R}_k\right) \end{aligned} \end{equation}
+
 
 至此，卡尔曼滤波器中所有输入均已确定。在实际测试过程中认知到影响运动预测效果的几个方面:
 \begin{enumerate}[itemsep=2pt,topsep=0pt,parsep=0pt]
