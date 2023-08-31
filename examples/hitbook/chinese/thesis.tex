@@ -116,11 +116,11 @@
 \setlist[itemize]{itemsep=1pt}
 \graphicspath{{figures/}}
 
-
 \begin{document}
 \frontmatter
 \input{front/cover} % 封面
 \makecover
+% \includepdf[page=1](extra/cover.pdf)
 % \input{front/denotation}%物理量名称表,符合规范为主，有要求添加
 \tableofcontents %目录
 \mainmatter
@@ -152,7 +152,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliography{reference} % 参考文献
 % \authorization %授权 
-\authorization[yc36.pdf] %添加扫描页的命令，与上互斥
+\authorization[extra/yc35.pdf] %添加扫描页的命令，与上互斥
 \include{back/acknowledgements} %致谢
 \begin{appendix}%附录
 \input{back/tools}
